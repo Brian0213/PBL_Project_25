@@ -10,6 +10,8 @@ https://kubernetes.io/docs/concepts/services-networking/ingress/
 
 https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/
 
+https://kops.sigs.k8s.io/getting_started/aws/
+
 https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/
 
 https://github.com/kubernetes/ingress-gce/blob/master/README.md#readme

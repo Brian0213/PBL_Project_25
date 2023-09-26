@@ -550,3 +550,79 @@ With the ClusterIssuer properlu configured, it is now time to start getting cert
 
 Lets see what that looks like in the next section.
 
+#### CONFIGURING INGRESS FOR TLS
+
+To ensure that every created ingress also has TLS configured, we will need to update the ingress manifest with TLS specific configurations.
+
+[Ingress Configure TLS](./Screenshots/ingress-anno-manifest.png)
+
+The most significat updates to the ingress definition is the annotations and tls sections.
+
+Lets quickly talk about Annotations. Annotations are used similar to labels in kubernetes. They are ways to attach metadata to objects.
+
+Differences between Annotations and Labels
+
+Labels are used in conjunction with selectors to identify groups of related resources. Because selectors are used to query labels, this operation needs to be efficient. To ensure efficient queries, labels are constrained by RFC 1123. RFC 1123, among other constraints, restricts labels to a maximum 63 character length. Thus, labels should be used when you want Kubernetes to group a set of related resources.
+
+Annotations are used for “non-identifying information” i.e., metadata that Kubernetes does not care about. As such, annotation keys and values have no constraints. Thus, if you want to add information for other humans about a given resource, then annotations are a better choice.
+
+The Annotation added to the Ingress resource adds metadata to specify the issuer responsible for requesting certificates. The issuer here will be the same one we have created earlier with the nameletsencrypt-prod.
+
+`annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"`
+
+The other section is tls where the host name that will require https is specified. The secretName also holds the name of the secret that will be created which will store details of the certificate key-pair. i.e Private key and public certificate.
+
+`tls:
+  - hosts:
+    - "tooling.artifactory.sandbox.svc.darey.io"
+    secretName: "tooling.artifactory.sandbox.svc.darey.io"`
+
+Redeploying the newly updated ingress will go through the process as shown below.
+
+`kubectl apply -f manifest.yaml -n tools`
+
+[Manifest Update](./Screenshots/update-manifest.png)
+
+Once deployed, you can run the following commands to see each resource at each phase.
+
+`kubectl get cert-manager`
+
+[Manifest Update](./Screenshots/kube-certmanager.png)
+
+`kubectl get certificaterequest -n tools`
+
+[Manifest Update](./Screenshots/kube-get-certreq-tools.png)
+
+`kubectl get order -n tools`
+
+[Manifest Update](./Screenshots/kube-get-order-tools.png)
+
+`kubectl get challenge -n tools`
+
+[Manifest Update](./Screenshots/kube-get-chall-tools.png)
+
+`kubectl get certificate -n tools`
+
+[Manifest Update](./Screenshots/kube-get-cert-tools.png)
+
+At each stage you can run describe on each resource to get more information on what cert-manager is doing.
+
+If all goes well, running kubectl get certificate,you should see an output like below.
+
+Notice the secret name there in the above output. Executing the command kubectl get secrettooling.artifactory.sandbox.svc.darey.io -o yaml, you will see the data with encoded version of both the private key tls.key and the public certificate tls.crt. This is the actual certificate configuration that the ingress controller will use as part of Nginx configuration to terminate TLS/SSL on the ingress.
+
+If you now head over to the browser, you should see the padlock sign without warnings of untrusted certificates.
+
+
+Finally, one more task for you to do is to ensure that the LoadBalancer created for artifactory is destroyed. If you run a get service kubectl command like below;
+
+Task for the above Steps:
+
+`kubectl edit svc artifactory-artifactory-nginx  -n tools`
+
+If you are running your helm command in linux or mac, the file will open in VIM  editor, please edit as instructed and save.
+
+If windows it will open in a NOTE PAD.
+
+
